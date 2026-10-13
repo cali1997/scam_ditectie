@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Berichtcheck | Phishing-detector</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap');
+
+    :root {
+      --ink: #1e2630;
+      --muted: #66727d;
+      --paper: #f7f4ee;
+      --surface: #fffdf9;
+      --line: #dcd8cf;
+      --teal: #087d72;
+      --teal-light: #d9f0ea;
+      --coral: #d74e42;
+      --coral-light: #fbe2dc;
+      --gold: #c68112;
+      --gold-light: #fbedcc;
+      color-scheme: light;
+    }
+    :root[data-theme="dark"] {
+      --ink: #e8ecef;
+      --muted: #a7b1b8;
+      --paper: #171d21;
+      --surface: #222a2f;
+      --line: #3b464d;
+      --teal: #43b8a6;
+      --teal-light: #244a45;
+      --coral: #ff8275;
+      --coral-light: #512f30;
+      --gold: #e9b34d;
+      --gold-light: #4a3d25;
+      color-scheme: dark;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: "DM Sans", sans-serif;
+    }
+    .shell { max-width: 1160px; min-height: 100vh; margin: 0 auto; padding: 34px 28px 48px; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 34px; }
+    .header-controls { display: flex; align-items: center; gap: 18px; }
+    .brand { display: flex; gap: 12px; align-items: center; font-weight: 700; font-size: 18px; }
+    .brand-mark { display: grid; place-items: center; width: 34px; height: 34px; background: var(--teal); color: #fff; border-radius: 7px; }
+    .privacy { color: var(--muted); font-size: 14px; }
+    .theme-toggle { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 14px; cursor: pointer; white-space: nowrap; }
+    .theme-toggle input { width: 16px; height: 16px; margin: 0; accent-color: var(--teal); cursor: pointer; }
+    main { display: grid; grid-template-columns: minmax(0, 1.16fr) minmax(320px, .84fr); gap: 24px; align-items: start; }
+    .intro { grid-column: 1 / -1; max-width: 690px; margin-bottom: 10px; }
+    h1 { font-size: clamp(32px, 4vw, 52px); line-height: 1.03; letter-spacing: 0; margin: 0 0 14px; }
+    .intro p { margin: 0; color: var(--muted); font-size: 17px; line-height: 1.55; }
+    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+    .checker { padding: 22px; }
+    label { display: block; font-size: 14px; font-weight: 700; margin-bottom: 10px; }
+    textarea {
+      display: block; width: 100%; height: 264px; resize: vertical; padding: 15px;
+      border: 1px solid var(--line); border-radius: 5px; background: var(--paper); color: var(--ink);
+      font: 14px/1.5 "DM Mono", monospace;
+    }
+    textarea:focus { outline: 3px solid var(--teal-light); border-color: var(--teal); }
+    .actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 14px; }
+    .example { padding: 7px 0; border: 0; background: none; color: var(--teal); font: inherit; font-weight: 700; cursor: pointer; }
+    .scan { display: inline-flex; align-items: center; gap: 8px; padding: 11px 17px; border: 0; border-radius: 5px; background: var(--teal); color: white; font: inherit; font-weight: 700; cursor: pointer; }
+    .scan:hover { background: #05665d; }
+    .results { overflow: hidden; }
+    .result-head { display: flex; align-items: center; gap: 14px; padding: 20px; border-bottom: 1px solid var(--line); }
+    .score { display: grid; place-items: center; width: 57px; height: 57px; flex: 0 0 auto; border-radius: 50%; background: var(--teal-light); color: var(--teal); font: 700 20px "DM Mono", monospace; }
+    .score.high { background: var(--coral-light); color: var(--coral); }
+    .score.medium { background: var(--gold-light); color: var(--gold); }
+    .result-title { margin: 0; font-size: 18px; }
+    .result-subtitle { margin: 3px 0 0; color: var(--muted); font-size: 14px; }
+    .findings { min-height: 255px; padding: 12px 20px 20px; }
+    .empty { display: grid; place-items: center; height: 220px; color: var(--muted); text-align: center; line-height: 1.5; }
+    .finding { display: flex; gap: 11px; padding: 13px 0; border-bottom: 1px solid var(--line); }
+    .finding:last-child { border-bottom: 0; }
+    .flag { display: grid; place-items: center; flex: 0 0 auto; width: 24px; height: 24px; border-radius: 50%; background: var(--coral-light); color: var(--coral); font-weight: 700; }
+    .finding strong { display: block; font-size: 14px; }
+    .finding span { color: var(--muted); font-size: 13px; line-height: 1.4; }
+    .legend { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 18px; padding: 6px 2px 0; color: var(--muted); font-size: 13px; }
+    .legend-item { display: flex; align-items: center; gap: 7px; }
+    .dot { width: 9px; height: 9px; border-radius: 50%; }
+    .green { background: var(--teal); } .yellow { background: var(--gold); } .red { background: var(--coral); }
+    footer { margin-top: 42px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+    @media (max-width: 720px) {
+      .shell { padding: 22px 16px 32px; }
+      header { padding-bottom: 28px; }
+      .privacy { display: none; }
+      main { grid-template-columns: 1fr; gap: 16px; }
+      .intro { margin-bottom: 2px; }
+      .checker { padding: 16px; }
+      textarea { height: 220px; }
+      .actions { align-items: stretch; flex-direction: column-reverse; }
+      .scan { justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="brand"><div class="brand-mark" aria-hidden="true">✓</div> Berichtcheck</div>
+      <div class="header-controls">
+        <label class="theme-toggle"><input id="dark-mode" type="checkbox"><span id="theme-label">Donkere modus</span></label>
+        <label class="privacy" for="language">Taal <select id="language"><option value="nl">Nederlands</option><option value="en">English</option><option value="fr">Francais</option><option value="ar">العربية</option></select></label>
+      </div>
+    </header>
+    <main>
+      <section class="intro">
+        <h1>Is dit bericht te vertrouwen?</h1>
+        <p>Plak een e-mail, chatbericht of sms en controleer het op veelvoorkomende kenmerken van phishing.</p>
+      </section>
+      <section class="panel checker" aria-label="Bericht analyseren">
+        <label for="message">Bericht</label>
+        <textarea id="message" placeholder="Plak hier het bericht dat je wilt controleren..."></textarea>
+        <div class="actions">
+          <button class="example" id="example" type="button">Laad een voorbeeld</button>
+          <button class="scan" id="scan" type="button">Controleer bericht <span aria-hidden="true">→</span></button>
+        </div>
+      </section>
+      <section class="panel results" aria-live="polite" aria-label="Resultaat">
+        <div class="result-head">
+          <div class="score" id="score">0</div>
+          <div><h2 class="result-title" id="result-title">Nog geen analyse</h2><p class="result-subtitle" id="result-subtitle">Vul een bericht in om te beginnen.</p></div>
+        </div>
+        <div class="findings" id="findings"><div class="empty">De detector zoekt onder meer naar links, wachtwoordverzoeken, tijdsdruk en verdachte woorden.</div></div>
+      </section>
+      <div class="legend" aria-label="Uitleg risicoscores"><span class="legend-item"><i class="dot green"></i>Laag risico</span><span class="legend-item"><i class="dot yellow"></i>Let op</span><span class="legend-item"><i class="dot red"></i>Hoog risico</span></div>
+    </main>
+    <footer>Dit hulpmiddel geeft een indicatie. Open bij twijfel geen links of bijlagen en controleer de afzender via een bekend kanaal.</footer>
+  </div>
+  <script>
+    const message = document.getElementById('message');
+    const score = document.getElementById('score');
+    const title = document.getElementById('result-title');
+    const subtitle = document.getElementById('result-subtitle');
+    const findings = document.getElementById('findings');
+    const language = document.getElementById('language');
+    const ui = {
+      nl: {privacy: 'Taal', darkMode: 'Donkere modus', heading: 'Is dit bericht te vertrouwen?', intro: 'Plak een e-mail, chatbericht of sms en controleer het op veelvoorkomende kenmerken van phishing.', label: 'Bericht', placeholder: 'Plak hier het bericht dat je wilt controleren...', example: 'Laad een voorbeeld', scan: 'Controleer bericht', emptyTitle: 'Nog geen analyse', emptySubtitle: 'Vul een bericht in om te beginnen.', empty: 'De detector zoekt onder meer naar links, wachtwoordverzoeken, tijdsdruk en verdachte woorden.', noFindings: 'Geen verdachte kenmerken aangetroffen.<br>Blijf altijd alert op een onbekende afzender.', error: 'Analyse niet beschikbaar', errorSubtitle: 'Start de Python-app of Docker-container opnieuw.'},
+      en: {privacy: 'Language', darkMode: 'Dark mode', heading: 'Can this message be trusted?', intro: 'Paste an email, chat message, or text and check it for common phishing signs.', label: 'Message', placeholder: 'Paste the message you want to check here...', example: 'Load an example', scan: 'Check message', emptyTitle: 'No analysis yet', emptySubtitle: 'Enter a message to start.', empty: 'The detector looks for links, password requests, time pressure, and suspicious words.', noFindings: 'No suspicious signs were found.<br>Always stay alert for an unknown sender.', error: 'Analysis unavailable', errorSubtitle: 'Restart the Python app or Docker container.'},
+      fr: {privacy: 'Langue', darkMode: 'Mode sombre', heading: 'Ce message est-il fiable ?', intro: 'Collez un e-mail, un chat ou un SMS et recherchez les signes courants de phishing.', label: 'Message', placeholder: 'Collez ici le message a verifier...', example: 'Charger un exemple', scan: 'Verifier le message', emptyTitle: 'Pas encore d analyse', emptySubtitle: 'Saisissez un message pour commencer.', empty: 'Le detecteur recherche les liens, demandes de mot de passe, urgence et mots suspects.', noFindings: 'Aucun signe suspect trouve.<br>Restez toujours vigilant face a un expediteur inconnu.', error: 'Analyse indisponible', errorSubtitle: 'Redemarrez l application Python ou le conteneur Docker.'},
+      ar: {privacy: 'اللغة', darkMode: 'الوضع الداكن', heading: 'هل يمكن الوثوق بهذه الرسالة؟', intro: 'الصق رسالة بريد إلكتروني أو دردشة أو رسالة نصية للتحقق من علامات التصيد الشائعة.', label: 'الرسالة', placeholder: 'الصق الرسالة التي تريد التحقق منها هنا...', example: 'تحميل مثال', scan: 'فحص الرسالة', emptyTitle: 'لا يوجد تحليل بعد', emptySubtitle: 'أدخل رسالة للبدء.', empty: 'يبحث الكاشف عن الروابط وطلبات كلمات المرور وضغط الوقت والكلمات المشبوهة.', noFindings: 'لم يتم العثور على علامات مشبوهة.<br>ابقَ حذراً دائماً من المرسل غير المعروف.', error: 'التحليل غير متاح', errorSubtitle: 'أعد تشغيل تطبيق بايثون أو حاوية Docker.'}
+    };
+
+    function translatePage() {
+      const text = ui[language.value];
+      document.documentElement.lang = language.value;
+      document.documentElement.dir = language.value === 'ar' ? 'rtl' : 'ltr';
+      document.getElementById('theme-label').textContent = text.darkMode;
+      document.querySelector('.privacy').firstChild.textContent = `${text.privacy} `;
+      document.querySelector('h1').textContent = text.heading;
+      document.querySelector('.intro p').textContent = text.intro;
+      document.querySelector('label[for="message"]').textContent = text.label;
+      message.placeholder = text.placeholder;
+      document.getElementById('example').textContent = text.example;
+      document.getElementById('scan').firstChild.textContent = `${text.scan} `;
+      if (score.textContent === '0') { title.textContent = text.emptyTitle; subtitle.textContent = text.emptySubtitle; findings.innerHTML = `<div class="empty">${text.empty}</div>`; }
+    }
+
+    async function analyse() {
+      const text = message.value.trim();
+      if (!text) { title.textContent = 'Voer eerst een bericht in'; subtitle.textContent = 'Daarna kan de controle beginnen.'; return; }
+      try {
+        const response = await fetch('/api/analyse', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text, language: language.value }) });
+        const result = await response.json();
+        score.textContent = result.score;
+        score.className = 'score' + (result.score >= 50 ? ' high' : result.score >= 20 ? ' medium' : '');
+        title.textContent = result.title;
+        subtitle.textContent = result.subtitle;
+        findings.innerHTML = result.findings.length ? result.findings.map(finding => `<div class="finding"><div class="flag">!</div><div><strong>${finding.title}</strong><span>${finding.detail}</span></div></div>`).join('') : `<div class="empty">${ui[language.value].noFindings}</div>`;
+      } catch {
+        title.textContent = ui[language.value].error;
+        subtitle.textContent = ui[language.value].errorSubtitle;
+      }
+    }
+
+    document.getElementById('scan').addEventListener('click', analyse);
+    language.addEventListener('change', translatePage);
+    const darkMode = document.getElementById('dark-mode');
+    darkMode.checked = localStorage.getItem('theme') === 'dark';
+    document.documentElement.dataset.theme = darkMode.checked ? 'dark' : 'light';
+    darkMode.addEventListener('change', () => {
+      const theme = darkMode.checked ? 'dark' : 'light';
+      document.documentElement.dataset.theme = theme;
+      localStorage.setItem('theme', theme);
+    });
+    document.getElementById('example').addEventListener('click', async () => {
+      message.value = 'DRINGEND! Uw account is geblokkeerd. Klik hier om uw wachtwoord binnen 24 uur te verifiëren: http://veilig-bank.nl-account.bevestigen.example';
+      analyse();
+    });
+  </script>
+</body>
+</html>

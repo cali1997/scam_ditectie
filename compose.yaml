@@ -1,0 +1,5 @@
+services:
+  phishing-detector:
+    build: .
+    ports:
+      - "5001:5001"

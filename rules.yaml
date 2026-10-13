@@ -1,0 +1,36 @@
+rules:
+  - pattern: 'https?://|www\.'
+    points: 25
+    translations:
+      nl: {title: Link gevonden, detail: Controleer of het webadres echt bij de afzender hoort.}
+      en: {title: Link found, detail: Check that the web address really belongs to the sender.}
+      fr: {title: Lien trouve, detail: Verifiez que l'adresse web appartient vraiment a l'expediteur.}
+      ar: {title: تم العثور على رابط, detail: تحقق من أن عنوان الويب يعود فعلاً إلى المرسل.}
+  - pattern: 'wachtwoord|inloggegevens|password|pincode|verifieer.*account|bevestig.*account'
+    points: 30
+    translations:
+      nl: {title: Verzoek om gegevens, detail: Betrouwbare organisaties vragen niet per bericht om geheime gegevens.}
+      en: {title: Request for information, detail: Trusted organisations do not ask for secret information by message.}
+      fr: {title: Demande d'informations, detail: Les organisations fiables ne demandent pas d'informations secretes par message.}
+      ar: {title: طلب معلومات, detail: لا تطلب المؤسسات الموثوقة معلومات سرية عبر الرسائل.}
+  - pattern: 'direct|meteen|vandaag nog|binnen.*uur|laatste waarschuwing|dringend|spoed|urgente?'
+    points: 20
+    translations:
+      nl: {title: Tijdsdruk, detail: Phishing gebruikt haast om je minder kritisch te laten kijken.}
+      en: {title: Time pressure, detail: Phishing uses urgency to make you less critical.}
+      fr: {title: Pression temporelle, detail: Le phishing utilise l'urgence pour vous rendre moins vigilant.}
+      ar: {title: ضغط الوقت, detail: يستخدم التصيد الاستعجال لكي تصبح أقل حذراً.}
+  - pattern: 'gewonnen|prijs|cadeaukaart|geblokkeerd|opgeschort|ongebruikelijke activiteit|boete|betaal nu|klik hier'
+    points: 20
+    translations:
+      nl: {title: Verdachte woorden, detail: Dit soort woorden komen vaak voor in misleidende berichten.}
+      en: {title: Suspicious words, detail: These words often appear in misleading messages.}
+      fr: {title: Mots suspects, detail: Ces mots apparaissent souvent dans des messages trompeurs.}
+      ar: {title: كلمات مشبوهة, detail: تظهر هذه الكلمات غالباً في الرسائل المضللة.}
+  - pattern: '[A-Z]{5,}|!{2,}'
+    points: 10
+    translations:
+      nl: {title: Opvallende opmaak, detail: Veel hoofdletters of uitroeptekens kunnen druk uitoefenen.}
+      en: {title: Striking formatting, detail: Many capital letters or exclamation marks can create pressure.}
+      fr: {title: Mise en forme voyante, detail: Beaucoup de majuscules ou de points d'exclamation peuvent mettre la pression.}
+      ar: {title: تنسيق لافت, detail: قد تخلق الأحرف الكبيرة أو علامات التعجب ضغطاً.}
