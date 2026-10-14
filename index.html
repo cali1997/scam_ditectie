@@ -73,8 +73,14 @@
     .score { display: grid; place-items: center; width: 57px; height: 57px; flex: 0 0 auto; border-radius: 50%; background: var(--teal-light); color: var(--teal); font: 700 20px "DM Mono", monospace; }
     .score.high { background: var(--coral-light); color: var(--coral); }
     .score.medium { background: var(--gold-light); color: var(--gold); }
+    .result-meta { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+    .status-badge { display: inline-flex; align-self: flex-start; padding: 5px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+    .status-badge.low { background: var(--teal-light); color: var(--teal); }
+    .status-badge.medium { background: var(--gold-light); color: var(--gold); }
+    .status-badge.high { background: var(--coral-light); color: var(--coral); }
     .result-title { margin: 0; font-size: 18px; }
     .result-subtitle { margin: 3px 0 0; color: var(--muted); font-size: 14px; }
+    .recommendation { padding: 14px 20px 0; color: var(--ink); font-size: 14px; line-height: 1.5; }
     .findings { min-height: 255px; padding: 12px 20px 20px; }
     .empty { display: grid; place-items: center; height: 220px; color: var(--muted); text-align: center; line-height: 1.5; }
     .finding { display: flex; gap: 11px; padding: 13px 0; border-bottom: 1px solid var(--line); }
@@ -125,8 +131,12 @@
       <section class="panel results" aria-live="polite" aria-label="Resultaat">
         <div class="result-head">
           <div class="score" id="score">0</div>
-          <div><h2 class="result-title" id="result-title">Nog geen analyse</h2><p class="result-subtitle" id="result-subtitle">Vul een bericht in om te beginnen.</p></div>
+          <div class="result-meta">
+            <span class="status-badge low" id="status-badge">Laag risico</span>
+            <div><h2 class="result-title" id="result-title">Nog geen analyse</h2><p class="result-subtitle" id="result-subtitle">Vul een bericht in om te beginnen.</p></div>
+          </div>
         </div>
+        <div class="recommendation" id="recommendation">De detector zoekt onder meer naar links, wachtwoordverzoeken, tijdsdruk en verdachte woorden.</div>
         <div class="findings" id="findings"><div class="empty">De detector zoekt onder meer naar links, wachtwoordverzoeken, tijdsdruk en verdachte woorden.</div></div>
       </section>
       <div class="legend" aria-label="Uitleg risicoscores"><span class="legend-item"><i class="dot green"></i>Laag risico</span><span class="legend-item"><i class="dot yellow"></i>Let op</span><span class="legend-item"><i class="dot red"></i>Hoog risico</span></div>
@@ -136,6 +146,8 @@
   <script>
     const message = document.getElementById('message');
     const score = document.getElementById('score');
+    const statusBadge = document.getElementById('status-badge');
+    const recommendation = document.getElementById('recommendation');
     const title = document.getElementById('result-title');
     const subtitle = document.getElementById('result-subtitle');
     const findings = document.getElementById('findings');
@@ -146,6 +158,15 @@
       fr: {privacy: 'Langue', darkMode: 'Mode sombre', heading: 'Ce message est-il fiable ?', intro: 'Collez un e-mail, un chat ou un SMS et recherchez les signes courants de phishing.', label: 'Message', placeholder: 'Collez ici le message a verifier...', example: 'Charger un exemple', scan: 'Verifier le message', emptyTitle: 'Pas encore d analyse', emptySubtitle: 'Saisissez un message pour commencer.', empty: 'Le detecteur recherche les liens, demandes de mot de passe, urgence et mots suspects.', noFindings: 'Aucun signe suspect trouve.<br>Restez toujours vigilant face a un expediteur inconnu.', error: 'Analyse indisponible', errorSubtitle: 'Redemarrez l application Python ou le conteneur Docker.'},
       ar: {privacy: 'اللغة', darkMode: 'الوضع الداكن', heading: 'هل يمكن الوثوق بهذه الرسالة؟', intro: 'الصق رسالة بريد إلكتروني أو دردشة أو رسالة نصية للتحقق من علامات التصيد الشائعة.', label: 'الرسالة', placeholder: 'الصق الرسالة التي تريد التحقق منها هنا...', example: 'تحميل مثال', scan: 'فحص الرسالة', emptyTitle: 'لا يوجد تحليل بعد', emptySubtitle: 'أدخل رسالة للبدء.', empty: 'يبحث الكاشف عن الروابط وطلبات كلمات المرور وضغط الوقت والكلمات المشبوهة.', noFindings: 'لم يتم العثور على علامات مشبوهة.<br>ابقَ حذراً دائماً من المرسل غير المعروف.', error: 'التحليل غير متاح', errorSubtitle: 'أعد تشغيل تطبيق بايثون أو حاوية Docker.'}
     };
+
+    function setEmptyState() {
+      title.textContent = ui[language.value].emptyTitle;
+      subtitle.textContent = ui[language.value].emptySubtitle;
+      recommendation.textContent = ui[language.value].empty;
+      statusBadge.textContent = language.value === 'nl' ? 'Laag risico' : language.value === 'en' ? 'Low risk' : language.value === 'fr' ? 'Faible risque' : 'مخاطر منخفضة';
+      statusBadge.className = 'status-badge low';
+      findings.innerHTML = `<div class="empty">${ui[language.value].empty}</div>`;
+    }
 
     function translatePage() {
       const text = ui[language.value];
@@ -159,23 +180,29 @@
       message.placeholder = text.placeholder;
       document.getElementById('example').textContent = text.example;
       document.getElementById('scan').firstChild.textContent = `${text.scan} `;
-      if (score.textContent === '0') { title.textContent = text.emptyTitle; subtitle.textContent = text.emptySubtitle; findings.innerHTML = `<div class="empty">${text.empty}</div>`; }
+      if (score.textContent === '0') { setEmptyState(); }
     }
 
     async function analyse() {
       const text = message.value.trim();
-      if (!text) { title.textContent = 'Voer eerst een bericht in'; subtitle.textContent = 'Daarna kan de controle beginnen.'; return; }
+      if (!text) { title.textContent = 'Voer eerst een bericht in'; subtitle.textContent = 'Daarna kan de controle beginnen.'; recommendation.textContent = 'Typ of plak een bericht om de controle te starten.'; statusBadge.textContent = 'Laag risico'; statusBadge.className = 'status-badge low'; return; }
       try {
         const response = await fetch('/api/analyse', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text, language: language.value }) });
         const result = await response.json();
         score.textContent = result.score;
         score.className = 'score' + (result.score >= 50 ? ' high' : result.score >= 20 ? ' medium' : '');
+        statusBadge.textContent = result.risk_label;
+        statusBadge.className = 'status-badge ' + result.risk_level;
         title.textContent = result.title;
         subtitle.textContent = result.subtitle;
+        recommendation.textContent = result.recommendation;
         findings.innerHTML = result.findings.length ? result.findings.map(finding => `<div class="finding"><div class="flag">!</div><div><strong>${finding.title}</strong><span>${finding.detail}</span></div></div>`).join('') : `<div class="empty">${ui[language.value].noFindings}</div>`;
       } catch {
         title.textContent = ui[language.value].error;
         subtitle.textContent = ui[language.value].errorSubtitle;
+        recommendation.textContent = 'Controleer of de backend draait.';
+        statusBadge.textContent = 'Laag risico';
+        statusBadge.className = 'status-badge low';
       }
     }
 

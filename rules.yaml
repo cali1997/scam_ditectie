@@ -27,6 +27,13 @@ rules:
       en: {title: Suspicious words, detail: These words often appear in misleading messages.}
       fr: {title: Mots suspects, detail: Ces mots apparaissent souvent dans des messages trompeurs.}
       ar: {title: كلمات مشبوهة, detail: تظهر هذه الكلمات غالباً في الرسائل المضللة.}
+  - pattern: 'vertrouwelijk|onderhoud|account.*blokk|fiscus|belasting|politie|bank.*update|betaling.*verzoek|acties.*nu'
+    points: 15
+    translations:
+      nl: {title: Drukke of dreigende taal, detail: Taal die druk uitoefent of dreigt werkt vaak als overtuigingsmiddel in phishing.}
+      en: {title: Pressure or threat language, detail: Urgent or threatening wording is often used to push people into acting without thinking.}
+      fr: {title: Langage de pression ou de menace, detail: Un langage urgent ou menaçant est souvent utilise pour pousser a agir sans reflexion.}
+      ar: {title: لغة الضغط أو التهديد, detail: غالباً ما تستخدم اللغة العاجلة أو التهديدية لإجبارك على التصرف دون تفكير.}
   - pattern: '[A-Z]{5,}|!{2,}'
     points: 10
     translations:
